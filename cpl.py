@@ -68,13 +68,12 @@ class Screen(tk.Frame):
     def submit(self):
         conn = sqlite3.connect('.database/data.db')
         c = conn.cursor()
-        print(list(self.opts.state()))
         params = (self.input, str(datetime.now()), 'Reason', str(datetime.now()))
         c.execute("INSERT INTO JOURNAL VALUES (?,?,?,?)",params)
         conn.commit()
         c.execute('SELECT * FROM JOURNAL')
         print(c.fetchall())
-        #conn.close()
+        conn.close()
         #TODO write info
         self.stage=0
         self.display()
