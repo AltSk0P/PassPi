@@ -1,70 +1,89 @@
-from kivy.app import App
-from kivy.uix.gridlayout import GridLayout
-from kivy.uix.label import Label
-from kivy.uix.textinput import TextInput
-from kivy.uix.dropdown import DropDown
-from kivy.uix.button import Button
-from kivy.uix.popup import Popup
+import tkinter as tk
+import sqlite3
 from datetime import datetime
 
+class Checkbuttons(tk.Frame):
+    def __init__(self, parent=None, picks=[]):
+        tk.Frame.__init__(self, parent)
+        self.num = 3
+        self.vars = []
+        self.chkBoxes = []
+        for pick in picks:
+            var = tk.IntVar()
+            chk = tk.Checkbutton(self, text=pick, variable=var)
+            chk.pack(side='top', anchor='center', expand='YES')
+            self.chkBoxes.append(chk)
+            self.vars.append(var)
 
-# ID Number Masking
-class IDInput(TextInput):
-    def insert_text(self, substring, from_undo=False):
-        if substring.isdigit() != True:
-            substring = substring[0:-1]
-        elif (len(self.text) > 5):
-            substring = substring[0:-1]
-        return super(IDInput, self).insert_text(substring, from_undo=from_undo)
+    def state(self):
+        return map((lambda var: var.get()), self.vars)
 
-
-class LoginScreen(GridLayout):
-    # Writing
-    def Add(self, *args):
-        if (len(str(self.username.text)) == 6):
-            s = str(self.username.text) + ',' + str(datetime.now()) + '\n'
-            f = open('Data.csv', 'a')
-            f.write(s)
-            self.username.text = ''
-
-    # Button Layout
-    def __init__(self, **kwargs):
-        super(LoginScreen, self).__init__(**kwargs)
-        self.cols = 2
-        drop = DropDown()
-        self.add_widget(Label(text='ID Number'))
-        self.username = IDInput(multiline=False)
-        self.add_widget(self.username)
-        mainbut = Button(text='Lab', size_hint_y=None, height=50)
-        mainbut.bind(on_release=drop.open)
-        self.add_widget(Label(text='Location'))
-        self.add_widget(mainbut)
-        labut = Button(text='Lab', size_hint_y=None, height=50)
-        clabut = Button(text='Classroom', size_hint_y=None, height=50)
-        stubut = Button(text='Studio', size_hint_y=None, height=50)
-        conbut = Button(text='Consultation ', size_hint_y=None, height=50)
-        wsbut = Button(text='Work Study', size_hint_y=None, height=50)
-        labut.bind(on_release=lambda labut: drop.select(labut.text))
-        clabut.bind(on_release=lambda clabut: drop.select(clabut.text))
-        stubut.bind(on_release=lambda stubut: drop.select(stubut.text))
-        conbut.bind(on_release=lambda conbut: drop.select(conbut.text))
-        wsbut.bind(on_release=lambda wsbut: drop.select(wsbut.text))
-        drop.bind(on_select=lambda instance, x: setattr(mainbut, "text", x))
-        drop.add_widget(labut)
-        drop.add_widget(clabut)
-        drop.add_widget(stubut)
-        drop.add_widget(conbut)
-        drop.add_widget(wsbut)
-        button = Button(text='Submit', size_hint_y=None, height=50)
-        button.bind(on_release=self.Add)
-        self.add_widget(button)
+    def reset(self):
+        for chk in self.chkBoxes:
+            chk.deselect()
 
 
-# Rebuilding
-class MyApp(App):
-    def build(self):
-        return LoginScreen()
+class Screen(tk.Frame):
+    def __init__(self, *args, **kwargs):
+        tk.Frame.__init__(self, *args, **kwargs)
+        self.stage = 0
+        self.input = ""
+        self.frame = tk.Frame(self)
+
+        self.setup()
+        self.display()
+
+    def setup(self):
+        self.Entry = tk.Entry(self, width=50, justify='center')
+        self.Entry.grid(row=0, column=1)
+        self.Entry.bind('<Return>', self.parse)
+        self.opts = Checkbuttons(self,['Student Success Coach','Study Space','Models'])
+        self.opts.grid(row=0, column=1)
+        self.submitButton = tk.Button(self, text="Submit",
+                            command=self.submit)
+        self.submitButton.grid(row=1, column=1)
+
+    def parse(self,event):
+        self.input = str(self.Entry.get())
+        if (len(self.input)==6):
+            self.stage=1
+            self.Entry.delete(0, 'end')
+            self.display()
+        else:
+            self.Entry.delete(0, 'end')
+
+    def display(self):
+        if (self.stage==0):
+            self.input = ""
+            self.opts.grid_remove()
+            self.submitButton.grid_remove()
+            self.Entry.grid()
+            self.Entry.focus()
+        else:
+            self.Entry.grid_remove()
+            self.opts.grid()
+            self.opts.reset()
+            self.submitButton.grid()
+
+    def submit(self):
+        conn = sqlite3.connect('.database/data.db')
+        c = conn.cursor()
+        print(list(self.opts.state()))
+        params = (self.input, str(datetime.now()), 'Reason', str(datetime.now()))
+        c.execute("INSERT INTO JOURNAL VALUES (?,?,?,?)",params)
+        conn.commit()
+        c.execute('SELECT * FROM JOURNAL')
+        print(c.fetchall())
+        #conn.close()
+        #TODO write info
+        self.stage=0
+        self.display()
 
 
-if __name__ == '__main__':
-    MyApp().run()
+if __name__ == "__main__":
+
+    root = tk.Tk()
+    root.geometry("800x480")
+    my_app = Screen(root)
+    my_app.grid(row=0, column=0)
+    root.mainloop()
