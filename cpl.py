@@ -1,5 +1,6 @@
 import tkinter as tk
 import sqlite3
+import time as time
 from datetime import datetime
 from datetime import timedelta
 
@@ -94,7 +95,7 @@ class Screen(tk.Frame):
         else:
             for a,b,c,d in list:
                 self.req('update', ID=a, SignIn=b)
-                self.stage=0
+                self.stage=3
                 self.display()
         #print(self.req('selectall'))
 
@@ -118,13 +119,18 @@ class Screen(tk.Frame):
             self.opts.grid_remove()
             self.submitButton.grid_remove()
             self.EndLabel1.grid()
+            self.EndLabel1.update()
+            self.backToStage0()
         elif self.stage == 3: # Walkout Goodbye
             self.input = ""
             self.Entry.grid_remove()
             self.Label.grid_remove()
             self.EndLabel2.grid()
+            self.EndLabel1.update()
+            self.backToStage0()
 
     def backToStage0(self):
+        time.sleep(3)
         self.stage=0
         self.display()
 
@@ -146,7 +152,7 @@ class Screen(tk.Frame):
         reason = self.reasons(reasonList)
         self.req('insert',reason=reason)
         #print(self.req('selectall'))
-        self.stage=0
+        self.stage=2
         self.display()
 
 
