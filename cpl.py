@@ -130,7 +130,7 @@ class Screen(tk.Frame):
             self.backToStage0()
 
     def backToStage0(self):
-        time.sleep(3)
+        time.sleep(1.5)
         self.stage=0
         self.display()
 
