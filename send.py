@@ -14,9 +14,9 @@ SMTP_SERVER = 'smtp.gmail.com'
 SMTP_PORT = 587
 
 sender = 'supasspi@gmail.com'
-
 with open('pw') as f:
-    password = base64.b64decode(f.read())
+   #password = "".join(map(chr, decode_base64(f.read())))
+   password = f.read()
 
 recipient = sys.argv[1]
 subject = ''
