@@ -160,6 +160,7 @@ if __name__ == "__main__":
 
     root = tk.Tk()
     root.geometry("800x480")
+    root.attributes("-fullscreen", True)
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
     my_app = Screen(root)
