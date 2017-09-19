@@ -31,6 +31,7 @@ class Screen(tk.Frame):
         self.stage = 0
         self.input = ""
         self.frame = tk.Frame(self)
+        self.job = None
 
         self.setup()
         self.display()
@@ -115,6 +116,7 @@ class Screen(tk.Frame):
             self.opts.grid()
             self.opts.reset()
             self.submitButton.grid()
+            self.job = self.after(20,self.submit())
         elif self.stage == 2: # Walkin Welcome
             self.opts.grid_remove()
             self.submitButton.grid_remove()
@@ -154,6 +156,11 @@ class Screen(tk.Frame):
         #print(self.req('selectall'))
         self.stage=2
         self.display()
+
+    def canceljob(self):
+        if self.job is not None:
+            self.after_cancel(self.job)
+            self.job=None
 
 
 if __name__ == "__main__":
