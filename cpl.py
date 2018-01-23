@@ -2,7 +2,7 @@ import tkinter as tk
 import sqlite3
 import time as time
 from datetime import datetime
-from datetime import timedelta
+import random
 
 class Checkbuttons(tk.Frame):
     def __init__(self, parent=None, picks=[]):
@@ -27,13 +27,18 @@ class Checkbuttons(tk.Frame):
 
 class Screen(tk.Frame):
     def __init__(self, *args, **kwargs):
+        #Set initial variables and connect to database
         tk.Frame.__init__(self, *args, **kwargs)
         self.stage = 0
         self.input = ""
         self.frame = tk.Frame(self)
         self.connection = sqlite3.connect('/home/pi/PassPi/passpi/.database/data.db')
 
+        # Setup the GUI
         self.setup()
+        self.loadLines()
+
+        # Start display
         self.display()
 
     def setup(self):
@@ -56,7 +61,7 @@ class Screen(tk.Frame):
     def req(self,mode,**kwargs):
         conn = self.connection
         with conn:
-            print("Requested a "+mode+" operation.")
+            #print("Requested a "+mode+" operation.")
             c = conn.cursor()
             ID = kwargs.get('ID',None)
             SignIn = kwargs.get('SignIn',None)
@@ -123,6 +128,7 @@ class Screen(tk.Frame):
         elif self.stage == 2: # Walkin Welcome
             self.opts.grid_remove()
             self.submitButton.grid_remove()
+            self.EndLabel1['text'] = self.randomText(True)
             self.EndLabel1.grid()
             self.EndLabel1.update()
             self.backToStage0()
@@ -130,6 +136,7 @@ class Screen(tk.Frame):
             self.input = ""
             self.Entry.grid_remove()
             self.Label.grid_remove()
+            self.EndLabel2['text'] = self.randomText(False)
             self.EndLabel2.grid()
             self.EndLabel1.update()
             self.backToStage0()
@@ -160,17 +167,33 @@ class Screen(tk.Frame):
         self.stage=2
         self.display()
 
-    def canceljob(self):
-        if self.job is not None:
-            self.after_cancel(self.job)
-            self.job=None
+    def loadLines(self):
+        self.greetLines = []
+        self.byeLines = []
+        with open("/home/pi/PassPi/passpi/locale") as f:
+            content = f.readlines()
+            for line in content:
+                if line[0] != '#': # if not a comment
+                    try:
+                        if line[0] == 'I':
+                            self.greetLines += [line[3:]]*int(line[1])
+                        else:
+                            self.byeLines += [line[3:]] * int(line[1])
+                    except IndexError:
+                        print("IndexError thrown")
+
+    def randomText(self,isIn):
+        if isIn: # display Greetings
+            return random.choice(self.greetLines)
+        else:
+            return random.choice(self.byeLines)
 
 
 if __name__ == "__main__":
 
     root = tk.Tk()
     root.geometry("800x480")
-    #root.attributes("-fullscreen", True)
+    root.attributes("-fullscreen", True)
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
     my_app = Screen(root)

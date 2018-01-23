@@ -1,0 +1,27 @@
+# This file contains strings displayed on the Pass System.
+# The format is as follows: First symbol of the line ("I"/"O") stands for "In" or "Out" and indicates that the string should be displayed
+# after a student signs IN or OUT.
+# Next symbol will determine the odds of this string be chosen by random and has to match one of the following:
+# 5 - 25%
+# 4 - 20%
+# 3 - 15%
+# 2 - 10%
+# 1 - 5%
+
+I5 Welcome!
+I5 Welcome to STEM Zone!
+I5 Hello!
+I4 Make yourself home! 
+I4 Hi!
+I3 Nice to see you!
+I3 Glad to see you back!
+I1 I've been expecting you
+
+O5 Have a great day!
+O5 Goodbye!
+O5 See you later!
+O4 Be safe!
+O4 Don't forget to eat!
+O1 Don't work too hard
+O1 Don't do drugs!
+O1 May the Force be with you!
