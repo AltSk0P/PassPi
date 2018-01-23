@@ -7,7 +7,7 @@ from datetime import timedelta
 class Checkbuttons(tk.Frame):
     def __init__(self, parent=None, picks=[]):
         tk.Frame.__init__(self, parent)
-        self.num = 3
+        self.num = picks.__sizeof__()
         self.vars = []
         self.chkBoxes = []
         for pick in picks:
@@ -31,7 +31,7 @@ class Screen(tk.Frame):
         self.stage = 0
         self.input = ""
         self.frame = tk.Frame(self)
-        self.job = None
+        self.connection = sqlite3.connect('/home/pi/PassPi/passpi/.database/data.db')
 
         self.setup()
         self.display()
@@ -54,39 +54,42 @@ class Screen(tk.Frame):
         self.EndLabel2.grid(row=1, column=1)
 
     def req(self,mode,**kwargs):
-        conn = sqlite3.connect('.database/data.db')
-        c = conn.cursor()
-        ID = kwargs.get('ID',None)
-        SignIn = kwargs.get('SignIn',None)
-        reason = kwargs.get('reason',None)
-        if mode=='find':
-            params = (self.input,)
-            c.execute(
-                "SELECT * FROM JOURNAL WHERE ID=? AND SignIn>=date('now', 'start of day') AND SignOut IS NULL", params)
-            return c.fetchall()
-        elif mode=='update':
-            params = (str(datetime.now()),ID,SignIn,)
-            c.execute(
-                "UPDATE JOURNAL SET SignOut=? WHERE ID=? AND SignIn=?",params)
-        elif mode=='selectall':
-            c.execute('SELECT * FROM JOURNAL')
-            return c.fetchall()
-        elif mode == 'insert':
-            params = (self.input, str(datetime.now()), reason, None)
-            c.execute("INSERT INTO JOURNAL VALUES (?,?,?,?)", params)
-        conn.commit()
-        conn.close()
+        conn = self.connection
+        with conn:
+            print("Requested a "+mode+" operation.")
+            c = conn.cursor()
+            ID = kwargs.get('ID',None)
+            SignIn = kwargs.get('SignIn',None)
+            reason = kwargs.get('reason',None)
+            if mode=='find':
+                params = (self.input,)
+                c.execute(
+                    "SELECT * FROM JOURNAL WHERE ID=? AND SignIn>=date('now', 'start of day') AND SignOut IS NULL", params)
+                return c.fetchall()
+            elif mode=='update':
+                params = (str(datetime.now()),ID,SignIn,)
+                c.execute(
+                    "UPDATE JOURNAL SET SignOut=? WHERE ID=? AND SignIn=?", params)
+            elif mode=='selectall':
+                c.execute('SELECT * FROM JOURNAL')
+                return c.fetchall()
+            elif mode == 'insert':
+                params = (self.input, str(datetime.now()), reason, None)
+                c.execute("INSERT INTO JOURNAL VALUES (?,?,?,?)", params)
 
     def parse(self,event):
-        try:
-            self.input = str(int(str(self.Entry.get())))
-        except ValueError:
-            self.Entry.delete(0, 'end')
-            return
+        if self.stage == 0:
+            try:
+                self.input = str(int(str(self.Entry.get())))
+            except ValueError:
+                self.Entry.delete(0, 'end')
+                return
 
-        self.Entry.delete(0, 'end')
-        if (len(self.input)==6):
-            self.passRecord()
+            self.Entry.delete(0, 'end')
+            if (len(self.input)==6):
+                self.passRecord()
+        else:
+            self.Entry.delete(0, 'end')
 
     def passRecord(self):
         list = self.req('find')
@@ -116,7 +119,7 @@ class Screen(tk.Frame):
             self.opts.grid()
             self.opts.reset()
             self.submitButton.grid()
-            self.job = self.after(20,self.submit())
+            #self.job = self.after(20,self.submit())
         elif self.stage == 2: # Walkin Welcome
             self.opts.grid_remove()
             self.submitButton.grid_remove()
@@ -167,7 +170,7 @@ if __name__ == "__main__":
 
     root = tk.Tk()
     root.geometry("800x480")
-    root.attributes("-fullscreen", True)
+    #root.attributes("-fullscreen", True)
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
     my_app = Screen(root)
