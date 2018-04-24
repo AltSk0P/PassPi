@@ -1,6 +1,7 @@
 import tkinter as tk
 import sqlite3
 import time as time
+from datetime import timedelta
 from datetime import datetime
 import random
 
@@ -61,7 +62,7 @@ class Screen(tk.Frame):
     def req(self,mode,**kwargs):
         conn = self.connection
         with conn:
-            #print("Requested a "+mode+" operation.")
+            print("Requested a "+mode+" operation.")
             c = conn.cursor()
             ID = kwargs.get('ID',None)
             SignIn = kwargs.get('SignIn',None)
@@ -69,7 +70,7 @@ class Screen(tk.Frame):
             if mode=='find':
                 params = (self.input,)
                 c.execute(
-                    "SELECT * FROM JOURNAL WHERE ID=? AND SignIn>=date('now', 'start of day') AND SignOut IS NULL", params)
+                    "SELECT * FROM JOURNAL WHERE ID=? AND SignIn>=datetime('now', 'localtime', 'start of day') AND SignIn<datetime('now', '+1 day','localtime','start of day') AND SignOut IS NULL", params)
                 return c.fetchall()
             elif mode=='update':
                 params = (str(datetime.now()),ID,SignIn,)
@@ -98,6 +99,8 @@ class Screen(tk.Frame):
 
     def passRecord(self):
         list = self.req('find')
+        print("Find operation returned: ")
+        print(list)
         if not list:
             self.stage = 1
             self.display()
