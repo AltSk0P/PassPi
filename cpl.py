@@ -33,7 +33,7 @@ class Screen(tk.Frame):
         self.stage = 0
         self.input = ""
         self.frame = tk.Frame(self)
-        self.connection = sqlite3.connect('/home/pi/PassPi/passpi/.database/data.db')
+        self.connection = sqlite3.connect('.database/data.db')
 
         # Setup the GUI
         self.setup()
@@ -173,7 +173,7 @@ class Screen(tk.Frame):
     def loadLines(self):
         self.greetLines = []
         self.byeLines = []
-        with open("/home/pi/PassPi/passpi/locale") as f:
+        with open("locale") as f:
             content = f.readlines()
             for line in content:
                 if line[0] != '#': # if not a comment
